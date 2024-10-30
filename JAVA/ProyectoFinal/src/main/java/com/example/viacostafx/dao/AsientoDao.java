@@ -14,6 +14,7 @@ public class AsientoDao {
         this.emf = Persistence.createEntityManagerFactory("viacostaFX");
     }
 
+    // Crear un nuevo asiento
     public void crearAsiento(AsientoModel asiento) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -28,6 +29,7 @@ public class AsientoDao {
         }
     }
 
+    // Obtener un asiento por su ID
     public AsientoModel obtenerAsientoPorId(int asientoId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -37,6 +39,7 @@ public class AsientoDao {
         }
     }
 
+    // Obtener todos los asientos
     public List<AsientoModel> obtenerTodosLosAsientos() {
         EntityManager em = emf.createEntityManager();
         try {
@@ -47,6 +50,7 @@ public class AsientoDao {
         }
     }
 
+    // Obtener asientos por bus
     public List<AsientoModel> obtenerAsientosPorBus(int busId) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -58,6 +62,7 @@ public class AsientoDao {
         }
     }
 
+    // Actualizar un asiento existente
     public boolean actualizarAsiento(AsientoModel asientoActualizado) {
         EntityManager em = emf.createEntityManager();
         try {
@@ -81,6 +86,7 @@ public class AsientoDao {
         }
     }
 
+    // Eliminar un asiento por su ID
     public boolean eliminarAsiento(int asientoId) {
         EntityManager em = emf.createEntityManager();
         try {

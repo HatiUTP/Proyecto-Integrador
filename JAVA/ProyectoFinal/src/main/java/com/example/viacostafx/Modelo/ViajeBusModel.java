@@ -19,4 +19,6 @@ public class ViajeBusModel {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ID_Bus")
     private BusModel bus;
+
+
 }

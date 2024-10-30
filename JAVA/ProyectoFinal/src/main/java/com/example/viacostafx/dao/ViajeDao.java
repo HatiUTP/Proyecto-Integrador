@@ -11,6 +11,7 @@ import java.util.List;
 
 public class ViajeDao {
 
+
     public static List<ViajeModel> obtenerViajesDisponibles(String origenDistrito, String destinoDistrito, LocalDate fechaSeleccionada) {
         EntityManager em = JPAUtils.getEntityManagerFactory().createEntityManager();
         List<ViajeModel> viajes = null;
@@ -23,6 +24,7 @@ public class ViajeDao {
             LocalDateTime inicioDia = fechaSeleccionada.atStartOfDay();
             LocalDateTime finDia = fechaSeleccionada.atTime(23, 59, 59);
 
+            // Aquí es donde debes mejorar la consulta JPQL
             String jpql = "SELECT DISTINCT v FROM ViajeModel v " +
                     "LEFT JOIN FETCH v.viajeBuses vb " +
                     "LEFT JOIN FETCH vb.bus b " +
@@ -49,4 +51,14 @@ public class ViajeDao {
 
         return viajes;
     }
+
+    public ViajeModel obtenerViajePorId(int viajeId) {
+        EntityManager em = JPAUtils.getEntityManagerFactory().createEntityManager();
+        try {
+            return em.find(ViajeModel.class, viajeId);
+        } finally {
+            em.close();
+        }
+    }
+
 }

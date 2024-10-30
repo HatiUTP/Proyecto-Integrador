@@ -38,4 +38,8 @@ public class BusModel {
 
     @OneToMany(mappedBy = "bus")
     private List<ViajeBusModel> viajeBuses;
+
+    public String toString() {
+        return String.valueOf(id);
+    }
 }

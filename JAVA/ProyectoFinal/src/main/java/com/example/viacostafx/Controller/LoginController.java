@@ -44,7 +44,6 @@ public class LoginController implements Initializable {
 
         EmpleadosModel empleado = empleadosDao.obtenerEmpleadoPorUsername(username);
         if (empleado != null) {
-            // Compara la contraseña proporcionada con la guardada en la base de datos
             if (empleado.getContrasenia() != null && empleado.getContrasenia().equals(password)) {
                 cargarInterfazPrincipal();
             } else {
@@ -64,10 +63,9 @@ public class LoginController implements Initializable {
         alert.setContentText(mensaje);
 
         // Centrar la alerta en la ventana principal
-        alert.initOwner((Stage) txtLabel.getScene().getWindow()); // Establece la ventana principal como dueño
-        alert.initModality(Modality.WINDOW_MODAL); // Hace que la alerta sea modal respecto a la ventana principal
+        alert.initOwner((Stage) txtLabel.getScene().getWindow());
+        alert.initModality(Modality.WINDOW_MODAL);
 
-        // Centrar la alerta en la pantalla principal
         alert.setOnShown(event -> {
             Stage stage = (Stage) alert.getDialogPane().getScene().getWindow();
             Stage ownerStage = (Stage) alert.getOwner();

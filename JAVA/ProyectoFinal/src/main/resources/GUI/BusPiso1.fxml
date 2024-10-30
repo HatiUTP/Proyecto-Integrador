@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1014.0" prefWidth="1440.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.viacostafx.Controller.BusPiso1Controller">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1014.0" prefWidth="1440.0" style="-fx-background-color: white;" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.viacostafx.Controller.BusPiso1Controller">
    <children>
       <Text fill="#177ce3" layoutX="548.0" layoutY="87.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Seleccion de asiento" wrappingWidth="459.830078125">
          <font>
@@ -29,25 +29,25 @@
             <Font size="22.0" />
          </font>
       </Text>
-      <TextField layoutX="392.0" layoutY="838.0" prefHeight="29.0" prefWidth="149.0" />
+      <TextField fx:id="txtAsiento" layoutX="392.0" layoutY="838.0" prefHeight="29.0" prefWidth="149.0" />
       <Text layoutX="280.0" layoutY="912.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Precios:">
          <font>
             <Font size="22.0" />
          </font>
       </Text>
-      <TextField layoutX="392.0" layoutY="890.0" prefHeight="29.0" prefWidth="149.0" />
+      <TextField fx:id="txtPrecio" layoutX="392.0" layoutY="890.0" prefHeight="29.0" prefWidth="149.0" />
       <Text layoutX="803.0" layoutY="864.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Servicios:">
          <font>
             <Font size="22.0" />
          </font>
       </Text>
       <TextArea fx:id="txtServicios" editable="false" layoutX="913.0" layoutY="791.0" prefHeight="152.0" prefWidth="200.0" wrapText="true" />
-      <Button layoutX="1234.0" layoutY="944.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="124.0" style="-fx-background-color: #525FE1;" text="Siguiente" textFill="WHITE">
+      <Button fx:id="btnSiguiente" layoutX="1234.0" layoutY="944.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="124.0" style="-fx-background-color: #525FE1;" text="Siguiente" textFill="WHITE">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>
       </Button>
-      <Button layoutX="72.0" layoutY="944.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="124.0" style="-fx-background-color: #525FE1;" text="Atras" textFill="WHITE">
+      <Button fx:id="btnAtras" layoutX="72.0" layoutY="944.0" mnemonicParsing="false" prefHeight="46.0" prefWidth="124.0" style="-fx-background-color: #525FE1;" text="Atras" textFill="WHITE">
          <cursor>
             <Cursor fx:constant="HAND" />
          </cursor>

@@ -124,12 +124,6 @@
 }
 /*Estilo de los buses */
 
-. {
-    -fx-background-color: black;
-    -fx-border-radius: 15;
-    -fx-background-radius: 15;
-}
-
 .asiento-ocupado {
     -fx-background-color: red;
     -fx-text-fill: white;

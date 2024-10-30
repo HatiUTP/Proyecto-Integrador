@@ -12,6 +12,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
 
@@ -25,7 +26,6 @@ import java.util.ResourceBundle;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 
 
 public class InterfazPrincipalController implements Initializable {
@@ -41,10 +41,8 @@ public class InterfazPrincipalController implements Initializable {
     private Button btnBuscar;
     @FXML
     private GridPane Tabla1;
-
     @FXML
     private TableView<ViajeModel> tablaViajes;
-
     @FXML
     private TableColumn<ViajeModel, String> origenColumn;
     @FXML
@@ -57,23 +55,27 @@ public class InterfazPrincipalController implements Initializable {
     private TableColumn<ViajeModel, String> disponibilidadColumn;
     @FXML
     private TableColumn<ViajeModel, String> precioColumn;
+    @FXML
+    private AnchorPane mainContent;
+    @FXML
+    private Pane contentArea;
 
+    private Node registroUsuariosPanel;
     private Pane panelSecundario;
     private List<Node> elementosOriginalesTabla1;
 
-    /**
-     * Inicializa el controlador, configurando los componentes de la interfaz y asignando eventos.
-     */
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
         elementosOriginalesTabla1 = new ArrayList<>(Tabla1.getChildren());
         btnBuscar.setOnAction(event -> buscarYCargarPanelSecundario());
 
-        // Limitar la selección de fechas en viajeDate y retornoDate
-        limitarFechaSeleccionable(viajeDate);
-        limitarFechaSeleccionable(retornoDate);
-
         cargarDistritosEnComboBox();
+
+        // Restringir la selección de fechas pasadas
+        restrictPastDates(viajeDate);
+        restrictPastDates(retornoDate);
 
         origenColumn.setCellValueFactory(cellData ->
                 new SimpleStringProperty(cellData.getValue().getAgenciaOrigen().getUbigeo().getDistrito()));
@@ -89,28 +91,20 @@ public class InterfazPrincipalController implements Initializable {
                 new SimpleStringProperty(String.format("S/ %.2f", calcularPrecio(cellData.getValue()))));
     }
 
-    /**
-     * Limita la selección de fechas en el DatePicker para que solo se puedan elegir fechas actuales o futuras.
-     */
-    private void limitarFechaSeleccionable(DatePicker datePicker) {
-        datePicker.setDayCellFactory((Callback<DatePicker, DateCell>) param -> new DateCell() {
+        private void restrictPastDates(DatePicker datePicker) {
+        datePicker.setDayCellFactory(param -> new DateCell() {
             @Override
             public void updateItem(LocalDate item, boolean empty) {
                 super.updateItem(item, empty);
 
-                // Deshabilitar fechas anteriores a la actual
                 if (item.isBefore(LocalDate.now())) {
                     setDisable(true);
-                    setStyle("-fx-background-color: #ffc0cb;"); // Color de fondo para indicar deshabilitación
+                    setStyle("-fx-background-color: #ffc0cb;");
                 }
             }
         });
-        
     }
 
-    /**
-     * Carga los distritos disponibles en los ComboBox de origen y destino.
-     */
     private void cargarDistritosEnComboBox() {
         List<String> distritos = AgenciaDao.obtenerDistritosConAgencias();
 
@@ -134,19 +128,17 @@ public class InterfazPrincipalController implements Initializable {
         });
     }
 
-    /**
-     * Maneja el evento de doble clic en un viaje para mostrar la interfaz correspondiente.
-     */
-    private void manejarDobleClicEnViaje(ViajeModel viaje) {
-        BusModel bus = obtenerBusDelViaje(viaje); // Obtener el bus del viaje
+    private void manejarDobleClicEnViaje(ViajeModel viajeSeleccionado) {
+        BusModel bus = obtenerBusDelViaje(viajeSeleccionado);
         if (bus != null) {
             int capacidad = bus.getCapacidad();
             String descripcionServicios = bus.getCategoria().getDescripcion();
+            double precio = calcularPrecio(viajeSeleccionado);
 
             if (capacidad == 36) {
-                abrirInterfaz("/GUI/BusPiso1.fxml", descripcionServicios, bus);
+                abrirInterfaz("/GUI/BusPiso1.fxml", descripcionServicios, bus, precio, viajeSeleccionado);
             } else if (capacidad == 51) {
-                abrirInterfaz("/GUI/BusPiso1y2.fxml", descripcionServicios, bus);
+                abrirInterfaz("/GUI/BusPiso1y2.fxml", descripcionServicios, bus, precio, viajeSeleccionado);
             } else {
                 mostrarAlerta("No se encontró una interfaz para la capacidad de " + capacidad + " asientos.");
             }
@@ -155,25 +147,41 @@ public class InterfazPrincipalController implements Initializable {
         }
     }
 
-    /**
-     * Abre una interfaz de selección de asientos para el bus seleccionado.
-     */
-    private void abrirInterfaz(String fxmlPath, String descripcionServicios, BusModel bus) {
+    @FXML
+    private void onRegistroPasajerosClick() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/Pasajero.fxml"));
+            Pane pasajeroPane = loader.load();
+            PasajeroController pasajeroController = loader.getController();
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(pasajeroPane);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error al cargar la interfaz de Pasajeros: " + e.getMessage());
+        }
+    }
+
+    private void abrirInterfaz(String fxmlPath, String descripcionServicios, BusModel bus, double precio, ViajeModel viajeSeleccionado) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
             Pane root = loader.load();
 
-            // Obtener el controlador de la nueva interfaz
             Object controller = loader.getController();
 
             if (controller instanceof BusPiso1Controller) {
                 BusPiso1Controller busController = (BusPiso1Controller) controller;
                 busController.mostrarDescripcionServicios(descripcionServicios);
                 busController.setBusId(bus.getId());
+                busController.setPrecio(precio);
+                busController.setDatosViaje(viajeSeleccionado.getId(), origenCombo.getValue(), destinoCombo.getValue(), viajeDate.getValue().toString());
+                busController.setMainController(this);
+                busController.setViajeId(viajeSeleccionado.getId());
             } else if (controller instanceof BusPiso1y2Controller) {
                 BusPiso1y2Controller busController = (BusPiso1y2Controller) controller;
                 busController.mostrarDescripcionServicios(descripcionServicios);
                 busController.setBusId(bus.getId());
+                busController.setPrecio(precio);
             } else {
                 mostrarAlerta("Controlador desconocido.");
                 return;
@@ -190,9 +198,25 @@ public class InterfazPrincipalController implements Initializable {
         }
     }
 
-    /**
-     * Busca viajes y carga el panel secundario si es necesario.
-     */
+
+    public void cargarRegistroCliente(String origen, String destino, String fechaConHora, String asiento, double precio, String servicio, String categoria, int viajeId, int asientoId) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/RegistroCliente.fxml"));
+            Pane registroClientePane = loader.load();
+
+            RegistroClienteController clienteController = loader.getController();
+            clienteController.setDatosCliente(origen, destino, fechaConHora, asiento, precio, servicio, categoria, viajeId, asientoId);
+
+            // Limpiar el contentArea y añadir registroClientePane
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(registroClientePane);
+
+        } catch (IOException e) {
+            mostrarAlerta("Error al cargar la interfaz de Registro de Cliente.");
+            e.printStackTrace();
+        }
+    }
+
     @FXML
     private void buscarYCargarPanelSecundario() {
         if (retornoDate.getValue() != null){
@@ -205,9 +229,6 @@ public class InterfazPrincipalController implements Initializable {
         }
     }
 
-    /**
-     * Muestra el panel secundario en la interfaz.
-     */
     private void mostrarPanelSecundario() {
         if (panelSecundario == null) {
             try {
@@ -222,10 +243,8 @@ public class InterfazPrincipalController implements Initializable {
 
         // Añadimos el panel secundario al GridPane principal
         if (Tabla1 != null) {
-            // Eliminamos cualquier elemento previo en la posición deseada
             Tabla1.getChildren().removeIf(node -> GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) == 1);
 
-            // Añadimos el panel secundario en la posición deseada
             Tabla1.add(panelSecundario, 0, 1);
 
         } else {
@@ -233,28 +252,22 @@ public class InterfazPrincipalController implements Initializable {
         }
     }
 
-    /**
-     * Restaura la tabla principal a su estado original.
-     */
     private void cargarTablaPrincipall() {
         Tabla1.getChildren().clear();
         Tabla1.getChildren().addAll(elementosOriginalesTabla1);
     }
 
-    /**
-     * Busca viajes disponibles según los criterios seleccionados y los carga en la tabla.
-     */
     private void buscarYCargarViajesEnTabla() {
         String origen = origenCombo.getSelectionModel().getSelectedItem();
         String destino = destinoCombo.getSelectionModel().getSelectedItem();
         LocalDate fechaSeleccionada = viajeDate.getValue();
 
         if (origen == null || destino == null || fechaSeleccionada == null) {
+            // Mostrar mensaje de error indicando que deben seleccionar origen, destino y fecha
             mostrarAlerta("Debe seleccionar origen, destino y fecha de viaje.");
             return;
         }
 
-        // Obtener los viajes disponibles
         List<ViajeModel> viajesDisponibles = ViajeDao.obtenerViajesDisponibles(origen, destino, fechaSeleccionada);
 
         if (viajesDisponibles == null || viajesDisponibles.isEmpty()) {
@@ -263,20 +276,15 @@ public class InterfazPrincipalController implements Initializable {
             return;
         }
 
-        // Cargar los viajes en la tabla
         cargarViajesEnTabla(viajesDisponibles);
     }
 
-    /**
-     * Carga los viajes disponibles en la tabla de viajes.
-     */
+
     private void cargarViajesEnTabla(List<ViajeModel> viajesDisponibles) {
         tablaViajes.setItems(FXCollections.observableArrayList(viajesDisponibles));
     }
 
-    /**
-     * Obtiene el tipo de bus asociado al viaje.
-     */
+
     private String obtenerTipoBus(ViajeModel viaje) {
         BusModel bus = obtenerBusDelViaje(viaje);
 
@@ -294,25 +302,109 @@ public class InterfazPrincipalController implements Initializable {
         return "Desconocido";
     }
 
-    /**
-     * Obtiene el bus asociado al viaje seleccionado.
-     */
     private BusModel obtenerBusDelViaje(ViajeModel viaje) {
-        if (viaje.getViajeBuses() != null && !viaje.getViajeBuses().isEmpty()) {
-            ViajeBusModel viajeBus = viaje.getViajeBuses().iterator().next();
-            if (viajeBus != null) {
-                BusModel bus = viajeBus.getBus();
-                if (bus != null) {
-                    return bus;
+        if (viaje.getViajeBuses() != null) {
+            System.out.println("viaje.getViajeBuses().size(): " + viaje.getViajeBuses().size());
+            if (!viaje.getViajeBuses().isEmpty()) {
+                ViajeBusModel viajeBus = viaje.getViajeBuses().iterator().next();
+                if (viajeBus != null) {
+                    System.out.println("viajeBus ID: " + viajeBus.getId());
+                    BusModel bus = viajeBus.getBus();
+                    if (bus != null) {
+                        System.out.println("Bus ID: " + bus.getId());
+                        return bus;
+                    } else {
+                        System.out.println("viajeBus.getBus() es null");
+                    }
+                } else {
+                    System.out.println("viajeBus es null");
                 }
+            } else {
+                System.out.println("viaje.getViajeBuses() está vacío");
             }
+        } else {
+            System.out.println("viaje.getViajeBuses() es null");
         }
         return null;
     }
 
-    /**
-     * Obtiene la disponibilidad de asientos para el viaje.
-     */
+    @FXML
+    private void onRegistroUsuariosClick() {
+        try {
+            if (registroUsuariosPanel == null) {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/RegistroEmpleado.fxml"));
+                registroUsuariosPanel = (AnchorPane) loader.load();
+
+                // Configurar el tamaño usando propiedades directamente
+                AnchorPane.setTopAnchor(registroUsuariosPanel, 0.0);
+                AnchorPane.setBottomAnchor(registroUsuariosPanel, 0.0);
+                AnchorPane.setLeftAnchor(registroUsuariosPanel, 0.0);
+                AnchorPane.setRightAnchor(registroUsuariosPanel, 0.0);
+            }
+
+            // Limpiar el área de contenido
+            contentArea.getChildren().clear();
+
+            contentArea.getChildren().add(registroUsuariosPanel);
+
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error al cargar la vista");
+            alert.setContentText("No se pudo cargar la vista de registro de usuarios: " + e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void onRegistroChoferesClick() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/Chofer.fxml"));
+            Pane choferPane = loader.load();
+
+            // Obtener el controlador de Chofer
+            ChoferController choferController = loader.getController();
+
+
+            contentArea.getChildren().clear();
+            contentArea.getChildren().add(choferPane);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            mostrarAlerta("Error al cargar la interfaz de Choferes: " + e.getMessage());
+        }
+    }
+
+    @FXML
+    private void onMenuPrincipalClick() {
+        try {
+            // Limpiar el contenido actual
+            mainContent.getChildren().clear();
+
+            // Cargar la interfaz principal
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/GUI/InterfazPrincipal.fxml"));
+            AnchorPane principalView = loader.load();
+
+            // Configurar el nuevo contenido para que ocupe todo el espacio
+            AnchorPane.setTopAnchor(principalView, 0.0);
+            AnchorPane.setBottomAnchor(principalView, 0.0);
+            AnchorPane.setLeftAnchor(principalView, 0.0);
+            AnchorPane.setRightAnchor(principalView, 0.0);
+
+            // Añadir la vista principal al mainContent
+            mainContent.getChildren().add(principalView);
+
+        } catch (IOException e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error al cargar la interfaz principal");
+            alert.setContentText("No se pudo cargar la interfaz principal: " + e.getMessage());
+            alert.showAndWait();
+            e.printStackTrace();
+        }
+    }
+
     private String obtenerDisponibilidad(ViajeModel viaje) {
         BusModel bus = obtenerBusDelViaje(viaje);
         if (bus != null) {
@@ -331,9 +423,6 @@ public class InterfazPrincipalController implements Initializable {
         return "Desconocido";
     }
 
-    /**
-     * Calcula el precio del viaje, considerando el costo extra del bus.
-     */
     private double calcularPrecio(ViajeModel viaje) {
         double precioBase = 35.0;
         BusModel bus = obtenerBusDelViaje(viaje);
@@ -344,7 +433,6 @@ public class InterfazPrincipalController implements Initializable {
 
         return precioBase;
     }
-
 
     private void mostrarAlerta(String mensaje) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);

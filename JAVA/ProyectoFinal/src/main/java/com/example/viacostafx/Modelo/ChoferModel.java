@@ -25,7 +25,7 @@ public class ChoferModel {
     @Column(length = 100)
     private String email;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ID_Bus")
     private BusModel bus;
 

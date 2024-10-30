@@ -27,7 +27,7 @@ public class CategoriaModel {
 
     private Boolean isActive;
 
-    @OneToMany(mappedBy = "categoria")
+    @OneToMany(mappedBy = "categoria", fetch = FetchType.EAGER)
     private List<BusModel> buses;
 
 }
