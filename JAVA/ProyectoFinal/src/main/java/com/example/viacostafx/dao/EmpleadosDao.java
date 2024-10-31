@@ -162,6 +162,21 @@ public class EmpleadosDao {
             em.close();
         }
     }
+    // Verificar si un DNI ya existe en la base de datos
+    public boolean existeDNI(int dni) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            TypedQuery<Long> query = em.createQuery(
+                    "SELECT COUNT(e) FROM EmpleadosModel e WHERE e.DNI = :dni", Long.class);
+            query.setParameter("dni", dni);
+            return query.getSingleResult() > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        } finally {
+            em.close();
+        }
+    }
 
     // Cerrar el EntityManagerFactory
     public void cerrar() {

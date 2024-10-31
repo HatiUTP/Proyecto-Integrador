@@ -33,6 +33,7 @@ public class EmpleadosModel {
     private String apellido;
 
     @Column(name = "DNI", unique = true)
+
     private int DNI;
 
     @Column(name = "Telefono")

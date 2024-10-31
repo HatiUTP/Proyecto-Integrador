@@ -34,7 +34,7 @@ public class ChoferDao {
     }
 
 
-    // Método para agregar un nuevo chofer
+    // Metodo para agregar un nuevo chofer
     public void agregarChofer(ChoferModel chofer) {
         EntityManager em = emf.createEntityManager();
         EntityTransaction transaction = em.getTransaction();
